@@ -1,0 +1,66 @@
+本发版系统功能:
+1.支持java,nodejs,php,普通静态页面等环境的服务不间断代码迭代
+2.支持docker环境服务不间断代码迭代
+3.支持k8s环境服务不间断代码迭代
+4.支持检测公共程序(mysql,redis等)是否运行正常
+5.支持蓝绿部署和金丝雀部署
+
+本版系统由以下几个文件组成:
+发版程序:update.py
+支持程序:lib/fabfile.py lib/log.py lib/nginx.py lib/docker.py lib/slb.py lib/addserver.py lib/check_status.py
+配置文件:conf/logging.conf  conf/mod.ini
+帮助文件:readme
+
+mod.ini说明
+common模块:
+    path:     程序上传目录 默认是/home/update
+    ip:       补位的,不需要管它
+    local_backup_dir_prefix: 程序备份目录 默认是 /home/backup/
+    s_field:   分割符  默认是"|"
+    enabled:   表示是否通过git拉取源码构建的方式来上传程序 yes表示是 no表示否 默认为yes
+
+lb模块:
+    ip:       lb的ip地址,目前只支持nginx,其他lb之后加
+    port:     lb的ssh端口 默认是22
+    user:     lb的user
+    password: lb的密码
+    path:     nginx服务的路径
+
+其余模块是要发版的程序,下面以gxb-web为例进行说明:
+gxb-web模块:
+    path:        如果是docker(k8s)环境的话->是yml所在目录,如果是非docker的话->是代码包/代码目录所在目录(remote_dst_file)
+    type:        程序的类型->war  jar  php等等
+    tomcat_path: tomcat的家目录
+    ip:          tomcat机器的ip,多个ip的话以"|"进行分割
+    gray_ip:     灰度机器的ip,默认为空
+    user:        tomcat机器的用户,多个ip的用户不同的话以"|"进行分割
+    password:    tomcat机器的密码,多个ip的密码不同的话以"|"进行分割
+    ser_port:    tomcat程序的端口,多个的话以"|"进行分割
+    clone_flag:  程序自动克隆,如果是"1"表示要克隆,否则表示不克隆(手动克隆或者仓库已存在) 默认为0
+    git_ip:          本地仓库机器的ip地址 最好和发版脚本在一台机器上(127.0.0.1)
+    git_user:        本地仓库机器的可登录user
+    git_password:    user的密码
+    git_port:        本地仓库机器的ssh端口  默认是22
+    url:         远程仓库的url 格式:http://用户名:密码@远程仓库
+    repo_path:   本地仓库目录 注意如果自动克隆,仓库目录不能在任何用户的家目录下
+    branch:      要发版的分支
+    docker_flag: 灰度发版和线上回滚 1->原docker,2->k8s;线上发版 1或2->原docker;默认是0->非docker
+    restart:     docker run启动时的--restart选项,默认是"always"
+    dns:         docker run启动时的--dns选项,默认是"127.0.0.1"
+    vol_list:    docker run启动时的-v 选项,默认为空
+    port_list:   docker run启动时的-p 选项,默认为空
+    option:      docker run启动时的其他选项,默认为空
+    git_enabled:  True: 发版系统构建代码包,False 不构建代码包,从别的机器上传代码包/代码目录,需要定义source_host/source_user等变量
+    docker_git:  "1"->预发布环境打war包,线上不打war包,从灰度发;"2"->线上环境打war包,默认为"1"
+    lb_flag:     "0"-> nginx; "1"->slb 否则->无负载; 默认为"0"
+    slb_vser_id: 虚拟服务器组分组id(lb_flag为"1"的时候需要设置)
+    slb_port:    虚拟服务器组监听的后端服务器的端口(lb_flag为"1"的时候需要设置)
+    stop_cmd:    自定义停止命令
+    start_cmd:   自定义启动命令
+    package:     代码包名字,默认是模块名+".war"
+    is_compress: 代码包是否是压缩包,代码目录是非压缩包,默认是压缩包
+    check_url:   检测程序是否正常运行的API
+    key_word:    check_url返回结果的关键字
+
+    注意:模块中的clone_flag和url是在第一次发版程序时需要设置的,第一次发版之后建议把clone_flag改为非"1"
+
