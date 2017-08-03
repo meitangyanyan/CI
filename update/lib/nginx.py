@@ -30,16 +30,15 @@ class nginx():
         else:
             client.connect(hostname=ip,port=self.port,username=self.user,password=self.pasword)
         stdin,stdout,stderr = client.exec_command(cmd)
-        stdin.write("%s\n" % (self.pasword))  #这两行是执行sudo命令要求输入密码时需要的
-        stdin.flush()                         #执行普通命令的话不需要这两行
-        self.logger_console.error(stderr.read())
-        self.logger_root.error(stderr.read())
-        if stdout == "stdout":
-            pass
-        else:
-            return stdout.read()
+        if self.pasword != "":
+            stdin.write("%s\n" % (self.pasword))  #这两行是执行sudo命令要求输入密码时需要的
+            stdin.flush()                         #执行普通命令的话不需要这两行
+        err=stderr.read()
+        out=stdout.read()
         client.close()
-
+        self.logger_console.error(err)
+        self.logger_root.error(out)
+        return out
 
     def add(self,mod_ip):
         for ip in self.ip_list:

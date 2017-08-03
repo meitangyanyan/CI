@@ -102,7 +102,7 @@ class Imagelist(Resource):
         if not cf.has_section(mod_name):
             result["message"] = "no mod_name!"
             return result
-        url = "xxx"#docker镜像私库地址
+        url = "docker.gaoxiaobang.com"
         cmd = "curl -s -X GET --header 'Accept: application/json' 'https://%s/api/repositories/tags?repo_name=prod%%2F%s'" % (url, mod_name)
         p = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
         out = eval(p.stdout.read())
@@ -114,4 +114,4 @@ api.add_resource(Modlist,"/modlist")
 api.add_resource(Imagelist,"/imagelist")
 
 if __name__ == "__main__":
-    app.run(debug=True,threaded=True)
+    app.run(debug=True,threaded=True,host="123.57.208.141",port=7000)

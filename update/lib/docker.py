@@ -1,4 +1,4 @@
-#/usr/bin/env python
+#!/usr/bin/env python
 #-*- coding:utf-8 -*-
 #Authot:Zhang Yan
 
@@ -39,14 +39,14 @@ class docker():
         if self.pasword != "":
             stdin.write("%s\n" % (self.pasword))  #这两行是执行sudo命令要求输入密码时需要的
             stdin.flush()                         #执行普通命令的话不需要这两行
-        self.logger_console.error(stderr.read())
-        self.logger_root.error(stderr.read())
-        print(stderr.read())
-        if stdout == "stdout":
-            pass
-        else:
-            return stdout.read()
+        err=stderr.read()
+        out=stdout.read()
         client.close()
+        self.logger_console.error(err)
+        self.logger_root.error(err)
+        if "Error response from daemon" in err:
+            sys.exit("update failure")            
+        return out
 
     def image_func(self):
         self.logger_root.info("开始执行image_func函数")
@@ -111,7 +111,7 @@ class docker():
             for i in self.vol_list:
                 # /home/data/gxb-web/logs/:/usr/local/tomcat/logs/:rw
                 dir = i.split(":")[0]
-                cmd = "[ -d %s ] || mkdir %s" % (dir, dir)
+                cmd = "[ -d %s -o -f %s ] || mkdir %s" % (dir,dir,dir)
                 self.run_command(cmd)
         if len(self.port_list) == 0:
             export = ""
@@ -121,7 +121,7 @@ class docker():
             export = "-p %s" % bb
             for i in self.port_list:
                 port = i.split(":")[0]
-                cmd = "/usr/sbin/lsof -i:%s | grep -i LISTEN" % port
+                cmd = "sudo /usr/sbin/lsof -i:%s | grep -i LISTEN" % port
                 out = self.run_command(cmd)
                 if out == "":
                     pass

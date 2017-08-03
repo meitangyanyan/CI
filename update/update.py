@@ -1,4 +1,4 @@
-#/usr/bin/env python
+#!/usr/bin/env python
 #-*- coding:utf-8 -*-
 #Authot:Zhang Yan
 
@@ -14,9 +14,10 @@ starttime=datetime.datetime.now()
 today=time.strftime("%Y-%-m-%-d-%-H%-M",time.localtime())
 
 #程序及配置文件所在路径
-src_dir_prefix=os.path.dirname(os.path.abspath(__file__)) + "/"
+#src_dir_prefix=os.path.dirname(os.path.abspath(__file__)) + "/"
+src_dir_prefix="/home/update/"
 #模块信息配置文件
-mod_file=src_dir_prefix + "conf/modww.ini"
+mod_file=src_dir_prefix + "conf/mod.ini"
 #同步需要排除的文件
 exclude_file=src_dir_prefix + "conf/exclude.txt"
 
@@ -50,7 +51,7 @@ from lib.deploy import haixuan
 #模块IP/路径/模块类型
 #PS:如果有tomcat 还需指定tomcat路径（重启tomcat服务用）
 if not os.path.exists(mod_file):
-    logger_console.error("不能can not find module config file %s" % mod_file)
+    logger_console.error("can not find module config file %s" % mod_file)
     logger_root.error("can not find module config file %s" % mod_file)
     sys.exit("update failure")
 
@@ -518,10 +519,10 @@ def clean_cdn_cache(mod_name):
     import subprocess
     if mod_name == 'cms-web':
         itemid="123"
-        cmd="cdn接口命令"
+        cmd='''curl -s -H "Content-Type: application/json" -X POST --data '{ "userid": "gaoxiaobang","digest": "995571ecccccae72599a4f9f5716ea97","urls": [ { "url": "http://static-gs.gaoxiaobang.com/", "itemid": %s,  "action": "path_refresh", "source": "http://hku.gaoxiaobang.com/",  "priority": "1"}]}' http://gsvc.v.c4hcdn.com:8080/portal/mds/deliver_v2.jsp''' % itemid
     if mod_name == 'gxb-web':
         itemid="456"
-        cmd="cdn接口命令"
+        cmd='''curl -s -H "Content-Type: application/json" -X POST --data '{ "userid": "gaoxiaobang","digest": "9153c168eb4090fd6a9cbb090b9c7e0b","urls": [ { "url": "http://static-gs.class.gaoxiaobang.com/",   "itemid": %s,   "action": "path_refresh", "source": "http://hku.class.gaoxiaobang.com/", "priority": "2"}]}' http://gsvc.v.c4hcdn.com:8080/portal/mds/deliver_v2.jsp''' % itemid
     p = subprocess.Popen(cmd,shell=True,stdout=subprocess.PIPE,stderr=subprocess.STDOUT)
     out = p.stdout.read()
     if eval(out)["msg"] == "success":
@@ -529,7 +530,13 @@ def clean_cdn_cache(mod_name):
             logger_root.info("[%s]cdn缓存刷新成功!" % mod_name)
             logger_console.info("[%s]cdn缓存刷新成功!" % mod_name)
         else:
-            err_dic = {'cdn刷新返回信息列表'}
+            err_dic = {1:"任务解释异常或入库异常",
+                      2:"域名未在cdn系统注册",
+                      3:"域名未开启分发或是域名获取失败",
+                      4:"action不在指定范围",
+                      5:"域名未开启解压或切片或转码",
+                      6:"域名未开启目录刷新（默认不开启）",
+                      7:"此任务正在进行中"}
             logger_root.error("[%s]cdn缓存刷新失败! 错误信息:%s" % (mod_name,err_dic[eval(out)["result"][itemid]]))
             logger_console.error("[%s]cdn缓存刷新失败! 错误信息:%s" % (mod_name, err_dic[eval(out)["result"][itemid]]))
             sys.exit("update failure")

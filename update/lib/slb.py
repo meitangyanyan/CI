@@ -1,4 +1,4 @@
-#/usr/bin/env python
+#!/usr/bin/env python
 #-*- coding:utf-8 -*-
 #Authot:Zhang Yan
 
@@ -23,7 +23,6 @@ class SLB:
     def get_ecs_id(self,dec_ip):
         pt = re.compile("^((?:(2[0-4]\d)|(25[0-5])|([01]?\d\d?))\.){3}(?:(2[0-4]\d)|(255[0-5])|([01]?\d\d?))$")
         res = re.match(pt,dec_ip)
-        print res.group()
         if not res:
             cmd = 'grep -w %s /etc/hosts' % dec_ip
             p = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
@@ -96,4 +95,11 @@ class SLB:
         self.logger_root.info(res)
         return res
 
-
+'''
+eg: 加注释
+a=SLB("GerZbl85tXhOWyb6","dFlq4JdlNFH4baeBVaEqDCDHL9IC9m","cn-beijing","10.51.49.145","rsp-2ze7j6fcv7jtt",6379)
+# 高校邦access_key_id=GerZbl85tXhOWyb6,access_key_secret=dFlq4JdlNFH4baeBVaEqDCDHL9IC9m
+# 开课吧access_key_id=LTAI6DCiZqL0Gkvi,access_key_secret=ylIZRvB3wBOwoT59kMLK8H0NIUscXD
+s=a.dec_slb()
+print s
+'''

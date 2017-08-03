@@ -1,4 +1,4 @@
-#/usr/bin/env python
+#!/usr/bin/env python
 #-*- coding:utf-8 -*-
 #Authot:Zhang Yan
 
@@ -30,18 +30,18 @@ class AddServer:
         client.load_system_host_keys()
         client.connect(hostname=ip, port=self.port, username=self.user, password=self.password)
         stdin, stdout, stderr = client.exec_command(cmd)
-        stdin.write("%s\n" % (self.password))  # 这两行是执行sudo命令要求输入密码时需要的
-        stdin.flush()  # 执行普通命令的话不需要这两行
-        self.logger_console.error(stderr.read())
-        self.logger_root.error(stderr.read())
-        if stdout == "stdout":
-            self.logger_root.info(stdout.read())
-        else:
-            return stdout.read()
+        if self.password != "":
+            stdin.write("%s\n" % (self.password))  # 这两行是执行sudo命令要求输入密码时需要的
+            stdin.flush()  # 执行普通命令的话不需要这两行
+        err=stderr.read()
+        out=stdout.read()
         client.close()
+        self.logger_console.error(err)
+        self.logger_root.error(err)
+        return out
     def common_func(self):
         for ip in self.lb_ip_list:
-            cmd = 'sudo confd -onetime -backend etcd -node http://xxx:4001'
+            cmd = 'sudo confd -onetime -backend etcd -node http://10.51.96.173:4001'
             self.logger_root.info(cmd)
             self.logger_console.info(cmd)
             self.run_command(ip, cmd)
